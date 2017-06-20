@@ -1,0 +1,146 @@
+<canvas id="canvas" width="400" height="400"></canvas>
+
+<script type="text/javascript">// Game object
+var Game = function(canvas) {
+  // some constants
+  this.canvas = canvas;
+  this.ctx = canvas.getContext('2d');
+  this.ts = 10; // tile size is 10px
+  this.tc = canvas.width / this.ts; // tiles count per row/col
+  this.main; // main that will hold the game loop
+
+  this.startSize = 5;
+
+  // some startup values
+  this.difficulty = 15;
+  this.px = this.tc / 2;
+  this.py = this.tc / 2; // player starts in the middle of the screen
+  this.xv = 0;
+  this.yv = 0; // snake doesn't move until play presses a key
+  this.snake = new Snake(this.startSize, [{x: this.px, y: this.py}]);
+  this.apple = this.newApple();
+};
+
+Game.prototype.loop = function() {
+  // color canvas black
+  this.ctx.fillStyle = 'black';
+  this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+  // update game state
+  this.snake.move(this.xv, this.yv);
+
+  // check for collisions
+  // walls
+  var head = this.snake.head();
+  if (head.x < 0) {
+    head.x = this.tc - 1;
+  } else if (head.x >= this.tc) {
+    head.x = 0;
+  } else if (head.y < 0) {
+    head.y = this.tc - 1;
+  } else if (head.y >= this.tc) {
+    head.y = 0;
+  }
+
+  // own tail
+  var tail = this.snake.tail;
+  for (var i = 0; i < tail.length - 1; i++) {
+    if (tail[i].x === head.x && tail[i].y === head.y) {
+      this.snake.size = this.startSize;
+    }
+  }
+
+  // food
+  if (head.x === this.apple.x && head.y === this.apple.y) {
+    this.snake.size++
+    this.difficulty++
+    this.apple = this.newApple();
+    this.setLoop();
+  }
+
+  this.renderSnake();
+  this.renderApple();
+};
+
+Game.prototype.start = function() {
+  window.addEventListener('keydown', this.keydown.bind(this));
+  this.setLoop()
+};
+
+Game.prototype.setLoop = function() {
+  clearInterval(this.main);
+  this.main = setInterval(this.loop.bind(this), 1000/this.difficulty);
+}
+
+Game.prototype.keydown = function(e) {
+  switch (e.keyCode) {
+    case 37:
+      this.xv = -1;
+      this.yv = 0;
+      break;
+    case 38:
+      this.yv = -1;
+      this.xv = 0;
+      break;
+    case 39:
+      this.xv = 1;
+      this.yv = 0;
+      break;
+    case 40:
+      this.xv = 0;
+      this.yv = 1;
+      break;
+  }
+};
+
+Game.prototype.newApple = function() {
+  return {
+    x: Math.floor(Math.random() * this.tc),
+    y: Math.floor(Math.random() * this.tc)
+  };
+};
+
+Game.prototype.renderApple = function() {
+  this.ctx.fillStyle = 'red';
+  this.ctx.fillRect(this.apple.x * this.ts, this.apple.y * this.ts, this.ts - 1, this.ts - 1);
+};
+
+Game.prototype.renderSnake = function() {
+  this.ctx.fillStyle = 'blue';
+  var tail = this.snake.tail;
+  while (tail.length > this.snake.size) {
+    tail.shift();
+  }
+  for (var i = 0; i < tail.length; i++) {
+    this.ctx.fillRect(tail[i].x * this.ts, tail[i].y * this.ts, this.ts - 1, this.ts - 1);
+  }
+}
+
+// Snake object
+var Snake = function(size, tail) {
+  this.size = size;
+  this.tail = tail;
+};
+
+Snake.prototype.head = function() {
+  return this.tail[this.tail.length - 1];
+};
+
+Snake.prototype.move = function(xv, yv) {
+  if (xv === 0 && yv === 0) {
+    return
+  }
+
+  var head = this.head();
+  this.tail.push({
+    x: head.x + xv,
+    y: head.y + yv
+  });
+};
+
+// setup canvas
+var canvas = document.getElementById('canvas');
+var game = new Game(canvas);
+game.start();
+
+</script>
