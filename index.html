@@ -5,14 +5,14 @@ var Game = function(canvas) {
   // some constants
   this.canvas = canvas;
   this.ctx = canvas.getContext('2d');
-  this.ts = 10; // tile size is 10px
+  this.ts = 20; // tile size is 10px
   this.tc = canvas.width / this.ts; // tiles count per row/col
   this.main; // main that will hold the game loop
 
   this.startSize = 5;
 
   // some startup values
-  this.difficulty = 15;
+  this.difficulty = 10;
   this.px = this.tc / 2;
   this.py = this.tc / 2; // player starts in the middle of the screen
   this.xv = 0;
